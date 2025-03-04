@@ -7,6 +7,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,14 +29,21 @@ public class UserController {
 
 	@GetMapping(value = "")
 	public ResponseEntity<List<UserDTO>> getAllUsers() {
-		List<User> users = userServiceImpl.getAllUsers();
+//		List<User> users1 = userServiceImpl.getAllUsers();
 
+		List<User> users2 = userServiceImpl.getAllUsersV2();
 		List<UserDTO> userDTOs = new ArrayList<>();
-		for (User user : users) {
+		for (User user : users2) {
 			UserDTO dto = new UserDTO();
+			System.out.println(user.getPosts());
 			BeanUtils.copyProperties(user, dto);
 			userDTOs.add(dto);
 		}
+
+//		System.out.println("----------------------------\n");
+//		for (User user : users2) {
+//			System.out.println(user.getPosts());
+//		}
 
 //		List<UserDTO> userDTOs = users.stream().map(user -> {
 //			UserDTO userDTO = new UserDTO();
@@ -46,13 +54,29 @@ public class UserController {
 		return new ResponseEntity<List<UserDTO>>(userDTOs, HttpStatus.OK);
 	}
 
+	@GetMapping(value = "/{id}")
+	public ResponseEntity<UserDTO> getUserById(@PathVariable(required = true) Integer id) throws Exception {
+
+		User userOpt = userServiceImpl.getUserById(id).orElseThrow(() -> new Exception("User not found"));
+		System.out.println(userOpt.getPosts());
+
+		UserDTO userInfo = UserDTO.builder().id(userOpt.getId()).name(userOpt.getName()).email(userOpt.getEmail())
+				.build();
+
+		return new ResponseEntity<UserDTO>(userInfo, HttpStatus.OK);
+
+	}
+
 	@PostMapping(value = "")
 	public ResponseEntity<String> createNewUser(@RequestBody CreateUserReq createUserReq) {
-		User user = new User();
+//		TODO: Validate req
 
-		BeanUtils.copyProperties(createUserReq, user);
-		userServiceImpl.createUser(user);
+//		User user = new User();
+//		BeanUtils.copyProperties(createUserReq, user);
 
-		return new ResponseEntity<String>("Hello", HttpStatus.OK);
+		User newUser = User.builder().email(createUserReq.getEmail()).name(createUserReq.getName()).build();
+		userServiceImpl.createUser(newUser);
+
+		return new ResponseEntity<String>("Success", HttpStatus.OK);
 	}
 }

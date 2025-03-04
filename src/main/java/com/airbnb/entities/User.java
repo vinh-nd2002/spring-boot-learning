@@ -1,14 +1,17 @@
 package com.airbnb.entities;
 
 import java.time.Instant;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,7 +43,7 @@ public class User {
 //	https://github.com/hibernate/hibernate-orm/blob/6.0/migration-guide.adoc#implicit-identifier-sequence-and-table-name
 	
 	@GeneratedValue(strategy = GenerationType.IDENTITY) // Auto increment
-	private int id;
+	private int id; // Should use wrapper class
 	
 	@Column(name = "name")
 	private String name;
@@ -50,6 +53,10 @@ public class User {
 //	@Column(name = "email", nullable = false, unique = true)
 	@Column(name = "email", nullable = false)
 	private String email;
+	
+//	TODO: fetch?, cascade?, orphanRemoval?, targetEntity?
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	private List<Post> posts;
 	
 	@Column(name = "created_at")
 	@CreationTimestamp

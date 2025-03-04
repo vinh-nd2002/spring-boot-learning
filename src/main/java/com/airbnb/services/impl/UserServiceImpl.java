@@ -1,6 +1,7 @@
 package com.airbnb.services.impl;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
@@ -25,6 +26,17 @@ public class UserServiceImpl implements IUserService {
 	@Override
 	public List<User> getAllUsers() {
 		return userRepository.findAll();
+	}
+
+	public Optional<User> getUserById(Integer id) {
+//		this.userRepository.getById(id);
+//		this.userRepository.getOne(id);
+
+		return this.userRepository.findById(id);
+	}
+
+	public List<User> getAllUsersV2() {
+		return userRepository.findAllWithPosts();
 	}
 
 }
