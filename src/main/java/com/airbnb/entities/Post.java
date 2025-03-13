@@ -26,27 +26,27 @@ import lombok.Setter;
 @Builder
 @AllArgsConstructor
 public class Post {
-	
+
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY) // Auto increment
 	private Integer id; // Recommend using wrapper classes instead of primitive types
-	
+
 	@Column(name = "title", unique = true, nullable = false)
 	private String title;
-	
+
 	@Column(name = "description", nullable = false)
 	private String description;
-	
+
 	@ManyToOne
-	@JoinColumn(name = "user_id", nullable = false, referencedColumnName = "id")
+	@JoinColumn(name = "user_id", nullable = false)
 	private User user;
-	
+
 	@Column(name = "created_at")
 	@CreationTimestamp
 	private Instant createdAt;
-	
+
 	@Column(name = "updated_at")
 	@CreationTimestamp
 	private Instant updatedAt;
-	
+
 }

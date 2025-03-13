@@ -26,11 +26,12 @@ import lombok.Setter;
 @Getter
 @NoArgsConstructor
 
-//Annotation này tạo ra contructor với tất cả property
+// Annotation này tạo ra contructor với tất cả property
 @AllArgsConstructor
 
-// Annotation này chỉ tạo ra contructor với những property nào là final hoặc là @NonNull
-//@RequiredArgsConstructor
+// Annotation này chỉ tạo ra contructor với những property nào là final hoặc là
+// @NonNull
+// @RequiredArgsConstructor
 
 // Áp dụng Builder Pattern vào để tạo đối tượng, không cần lo về thứ tự các
 // property, không cần tạo nhiều contructor
@@ -38,30 +39,30 @@ import lombok.Setter;
 public class User {
 
 	@Id
-//	If strategy is AUTO, it always generate <entity>_seq table
-//	https://www.truiton.com/2024/02/spring-boot-hibernate-jpa-generationtype-table-vs-sequence-strategy-with-mysql/#Custom-SequenceGenerator
-//	https://github.com/hibernate/hibernate-orm/blob/6.0/migration-guide.adoc#implicit-identifier-sequence-and-table-name
-	
+	// If strategy is AUTO, it always generate <entity>_seq table
+	// https://www.truiton.com/2024/02/spring-boot-hibernate-jpa-generationtype-table-vs-sequence-strategy-with-mysql/#Custom-SequenceGenerator
+	// https://github.com/hibernate/hibernate-orm/blob/6.0/migration-guide.adoc#implicit-identifier-sequence-and-table-name
+
 	@GeneratedValue(strategy = GenerationType.IDENTITY) // Auto increment
 	private int id; // Should use wrapper class
-	
+
 	@Column(name = "name")
 	private String name;
 
-//  columnDefinition: allows defining custom SQL data types and constraints
-//  updatable: allows the column to be updated or not 
-//	@Column(name = "email", nullable = false, unique = true)
+	// columnDefinition: allows defining custom SQL data types and constraints
+	// updatable: allows the column to be updated or not
+	// @Column(name = "email", nullable = false, unique = true)
 	@Column(name = "email", nullable = false)
 	private String email;
-	
-//	TODO: fetch?, cascade?, orphanRemoval?, targetEntity?
+
+	// TODO: fetch?, cascade?, orphanRemoval?, targetEntity?
 	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
 	private List<Post> posts;
-	
+
 	@Column(name = "created_at")
 	@CreationTimestamp
 	private Instant createdAt;
-	
+
 	@Column(name = "updated_at")
 	@CreationTimestamp
 	private Instant updatedAt;
