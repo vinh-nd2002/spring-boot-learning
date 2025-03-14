@@ -38,7 +38,7 @@ public class Post {
 	private String description;
 
 	@ManyToOne
-	@JoinColumn(name = "user_id", nullable = false)
+	@JoinColumn(name = "user_id", nullable = false) // Dùng ở inverse side
 	private User user;
 
 	@Column(name = "created_at")

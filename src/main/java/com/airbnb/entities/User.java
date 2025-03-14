@@ -11,6 +11,8 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
@@ -20,6 +22,11 @@ import lombok.NoArgsConstructor;
 //import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
+@NamedEntityGraph(name = "user-posts", attributeNodes = {
+		@NamedAttributeNode("name"),
+		@NamedAttributeNode("email"),
+		@NamedAttributeNode("posts")
+})
 @Entity
 @Table(name = "users")
 @Setter
@@ -56,7 +63,10 @@ public class User {
 	private String email;
 
 	// TODO: fetch?, cascade?, orphanRemoval?, targetEntity?
-	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+	// EAGER: khi lấy User thì lấy luôn Post cho dù có gọi getPosts() hay không?
+	// LAZY: khi lấy User thì không lấy Post, chỉ khi gọi getPosts() thì mới lấy
+	// mappedBy: trỏ tới tên biến user ở Post
+	@OneToMany(mappedBy = "user", fetch = FetchType.LAZY) // mappedBy: dùng ở owner side
 	private List<Post> posts;
 
 	@Column(name = "created_at")

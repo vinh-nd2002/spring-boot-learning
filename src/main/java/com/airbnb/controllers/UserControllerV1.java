@@ -3,7 +3,6 @@ package com.airbnb.controllers;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -29,27 +28,29 @@ public class UserControllerV1 {
 
 	@GetMapping(value = "")
 	public ResponseEntity<List<UserDTO>> getAllUsers() {
-//		List<User> users1 = userServiceImpl.getAllUsers();
+		List<User> users1 = userServiceImpl.getAllUsers();
 
-		List<User> users2 = userServiceImpl.getAllUsersV2();
+		// List<User> users2 = userServiceImpl.getAllUsersV2();
 		List<UserDTO> userDTOs = new ArrayList<>();
-		for (User user : users2) {
+		for (User user : users1) {
 			UserDTO dto = new UserDTO();
-			System.out.println(user.getPosts());
-			BeanUtils.copyProperties(user, dto);
+			// System.out.println(user.getPosts());
+			dto.setId(user.getId());
+			dto.setName(user.getName());
+			dto.setEmail(user.getEmail());
 			userDTOs.add(dto);
 		}
 
-//		System.out.println("----------------------------\n");
-//		for (User user : users2) {
-//			System.out.println(user.getPosts());
-//		}
+		// System.out.println("----------------------------\n");
+		// for (User user : users2) {
+		// System.out.println(user.getPosts());
+		// }
 
-//		List<UserDTO> userDTOs = users.stream().map(user -> {
-//			UserDTO userDTO = new UserDTO();
-//			BeanUtils.copyProperties(user, userDTO);
-//			return userDTO;
-//		}).toList();
+		// List<UserDTO> userDTOs = users.stream().map(user -> {
+		// UserDTO userDTO = new UserDTO();
+		// BeanUtils.copyProperties(user, userDTO);
+		// return userDTO;
+		// }).toList();
 
 		return new ResponseEntity<List<UserDTO>>(userDTOs, HttpStatus.OK);
 	}
@@ -69,10 +70,10 @@ public class UserControllerV1 {
 
 	@PostMapping(value = "")
 	public ResponseEntity<String> createNewUser(@RequestBody CreateUserReq createUserReq) {
-//		TODO: Validate req
+		// TODO: Validate req
 
-//		User user = new User();
-//		BeanUtils.copyProperties(createUserReq, user);
+		// User user = new User();
+		// BeanUtils.copyProperties(createUserReq, user);
 
 		User newUser = User.builder().email(createUserReq.getEmail()).name(createUserReq.getName()).build();
 		userServiceImpl.createUser(newUser);
