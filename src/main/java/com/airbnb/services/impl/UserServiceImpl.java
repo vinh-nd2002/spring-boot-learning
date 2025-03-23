@@ -29,8 +29,8 @@ public class UserServiceImpl implements IUserService {
 	}
 
 	public Optional<User> getUserById(Integer id) {
-//		this.userRepository.getById(id);
-//		this.userRepository.getOne(id);
+		// this.userRepository.getById(id);
+		// this.userRepository.getOne(id);
 
 		return this.userRepository.findById(id);
 	}
@@ -39,4 +39,8 @@ public class UserServiceImpl implements IUserService {
 		return userRepository.findAllWithPosts();
 	}
 
+	@Override
+	public Optional<User> getUserByEmail(String username) {
+		return userRepository.findByEmail(username);
+	}
 }

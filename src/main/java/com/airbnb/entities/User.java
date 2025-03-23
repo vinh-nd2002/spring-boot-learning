@@ -56,6 +56,9 @@ public class User {
 	@Column(name = "name")
 	private String name;
 
+	@Column(name = "password", nullable = false)
+	private String password;
+
 	// columnDefinition: allows defining custom SQL data types and constraints
 	// updatable: allows the column to be updated or not
 	// @Column(name = "email", nullable = false, unique = true)
