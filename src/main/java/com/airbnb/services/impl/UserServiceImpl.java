@@ -3,6 +3,8 @@ package com.airbnb.services.impl;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.airbnb.entities.User;
@@ -42,5 +44,10 @@ public class UserServiceImpl implements IUserService {
 	@Override
 	public Optional<User> getUserByEmail(String username) {
 		return userRepository.findByEmail(username);
+	}
+
+	@Override
+	public Page<User> getAllUsers(Pageable pageable) {
+		return this.userRepository.findAll(pageable);
 	}
 }

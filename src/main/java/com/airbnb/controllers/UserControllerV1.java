@@ -2,7 +2,11 @@ package com.airbnb.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,10 +15,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.airbnb.dto.req.CreateUserReq;
 import com.airbnb.dto.res.UserDTO;
+import com.airbnb.dto.res.WithPaginationDTO;
 import com.airbnb.entities.User;
 import com.airbnb.services.impl.UserServiceImpl;
 
@@ -31,6 +37,7 @@ public class UserControllerV1 {
 
 	@GetMapping(value = "")
 	public ResponseEntity<List<UserDTO>> getAllUsers() {
+		System.out.println("Controller: getAllUsers() method called");
 		List<User> users1 = userServiceImpl.getAllUsers();
 
 		// List<User> users2 = userServiceImpl.getAllUsersV2();
@@ -58,6 +65,49 @@ public class UserControllerV1 {
 		return new ResponseEntity<List<UserDTO>>(userDTOs, HttpStatus.OK);
 	}
 
+	@GetMapping(value = "/search")
+	public ResponseEntity<List<UserDTO>> getAllUsersWithSearch(
+			@RequestParam(required = false, defaultValue = "0") Integer page,
+			@RequestParam(required = false, defaultValue = "10") Integer limit) {
+		int currentPage = (page == null || page == 1) ? 0 : (page - 1);
+
+		Pageable pageable = PageRequest.of(currentPage, limit);
+		Page<User> users = userServiceImpl.getAllUsers(pageable);
+
+		List<UserDTO> userDTOs = users.getContent().stream().map((user) -> {
+			UserDTO userDTO = UserDTO.builder().id(user.getId()).name(user.getName()).email(user.getEmail()).build();
+			return userDTO;
+		}).collect(Collectors.toList());
+
+		return new ResponseEntity<List<UserDTO>>(userDTOs, HttpStatus.OK);
+	}
+
+	@GetMapping(value = "/search-v2")
+	public ResponseEntity<WithPaginationDTO<UserDTO>> getAllUsersWithSearch(
+			@RequestParam(required = false) int page,
+			@RequestParam(required = false) int limit) {
+		// Optional<String> page, Optional<String> limit
+
+		int currentPage = (page == 1 || page == 0) ? 0 : (page - 1);
+		int pageSize = (limit < 1) ? 10 : limit;
+		Pageable pageable = PageRequest.of(currentPage, pageSize);
+		Page<User> userPage = userServiceImpl.getAllUsers(pageable);
+
+		List<UserDTO> userDTOs = userPage.getContent().stream().map((user) -> {
+			UserDTO userDTO = UserDTO.builder().id(user.getId()).name(user.getName()).email(user.getEmail()).build();
+			return userDTO;
+		}).collect(Collectors.toList());
+
+		WithPaginationDTO<UserDTO> response = WithPaginationDTO.<UserDTO>builder()
+				.currentPage(userPage.getNumber() + 1)
+				.limit(userPage.getSize())
+				.totalItems(userPage.getTotalElements())
+				.totalPages(userPage.getTotalPages())
+				.items(userDTOs)
+				.build();
+		return new ResponseEntity<WithPaginationDTO<UserDTO>>(response, HttpStatus.OK);
+	}
+
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<UserDTO> getUserById(@PathVariable(required = true) Integer id) throws Exception {
 
@@ -73,6 +123,7 @@ public class UserControllerV1 {
 
 	@PostMapping(value = "")
 	public ResponseEntity<String> createNewUser(@RequestBody CreateUserReq createUserReq) {
+		System.out.println("Controller: createNewUser() method called");
 		// TODO: Validate req
 
 		// User user = new User();
