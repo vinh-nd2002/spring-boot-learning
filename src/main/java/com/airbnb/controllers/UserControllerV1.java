@@ -85,13 +85,15 @@ public class UserControllerV1 {
 	@GetMapping(value = "/search-v2")
 	public ResponseEntity<WithPaginationDTO<UserDTO>> getAllUsersWithSearch(
 			@RequestParam(required = false) int page,
-			@RequestParam(required = false) int limit) {
+			@RequestParam(required = false) int limit,
+			@RequestParam(required = false) String name) {
 		// Optional<String> page, Optional<String> limit
 
 		int currentPage = (page == 1 || page == 0) ? 0 : (page - 1);
 		int pageSize = (limit < 1) ? 10 : limit;
 		Pageable pageable = PageRequest.of(currentPage, pageSize);
-		Page<User> userPage = userServiceImpl.getAllUsers(pageable);
+		// Page<User> userPage = userServiceImpl.getAllUsers(pageable);
+		Page<User> userPage = userServiceImpl.getAllUsersV2(name, pageable);
 
 		List<UserDTO> userDTOs = userPage.getContent().stream().map((user) -> {
 			UserDTO userDTO = UserDTO.builder().id(user.getId()).name(user.getName()).email(user.getEmail()).build();

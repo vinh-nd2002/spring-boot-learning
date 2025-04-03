@@ -15,6 +15,8 @@ public interface IUserService {
 
 	public Page<User> getAllUsers(Pageable pageable);
 
+	public Page<User> getAllUsersV2(String name, Pageable pageable);
+
 	public Optional<User> getUserById(Integer id);
 
 	public List<User> getAllUsersV2();

@@ -5,9 +5,11 @@ import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import com.airbnb.entities.User;
+import com.airbnb.entities.User_;
 import com.airbnb.repositories.UserRepository;
 import com.airbnb.services.IUserService;
 
@@ -49,5 +51,20 @@ public class UserServiceImpl implements IUserService {
 	@Override
 	public Page<User> getAllUsers(Pageable pageable) {
 		return this.userRepository.findAll(pageable);
+	}
+
+	@Override
+	public Page<User> getAllUsersV2(String name, Pageable pageable) {
+		return this.userRepository.findAll(this.likeName(name), pageable);
+	}
+
+	public Specification<User> likeName(String name) {
+		return (root, query, builder) -> {
+			if (name == null || name.isEmpty()) {
+				return builder.conjunction();
+			}
+			return builder.like(root.get(User_.NAME), "%" + name + "%");
+			// return builder.like(root.get("name"), "%" + name + "%");
+		};
 	}
 }
