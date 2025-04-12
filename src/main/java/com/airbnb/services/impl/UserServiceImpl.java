@@ -2,6 +2,7 @@ package com.airbnb.services.impl;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,6 +13,7 @@ import com.airbnb.entities.User;
 import com.airbnb.entities.User_;
 import com.airbnb.repositories.UserRepository;
 import com.airbnb.services.IUserService;
+import com.airbnb.spec.UserSpec;
 
 @Service
 public class UserServiceImpl implements IUserService {
@@ -55,16 +57,22 @@ public class UserServiceImpl implements IUserService {
 
 	@Override
 	public Page<User> getAllUsersV2(String name, Pageable pageable) {
-		return this.userRepository.findAll(this.likeName(name), pageable);
+		return this.userRepository.findAll(
+				Specification.where(UserSpec.likeName(name)),
+				pageable);
+
 	}
 
-	public Specification<User> likeName(String name) {
-		return (root, query, builder) -> {
-			if (name == null || name.isEmpty()) {
-				return builder.conjunction();
-			}
-			return builder.like(root.get(User_.NAME), "%" + name + "%");
-			// return builder.like(root.get("name"), "%" + name + "%");
-		};
+	@Override
+	public Page<User> getAllUsersV2(String name, String email, Pageable pageable) {
+		return this.userRepository.findAll(
+				Specification.where(UserSpec.likeName(name)).and(UserSpec.likeEmail(email)), pageable);
+
+	}
+
+	@Override
+	public Page<User> getAllUsersV2(Set<Long> ids, Pageable pageable) {
+		return this.userRepository.findAll(
+				Specification.where(UserSpec.byIds(ids)), pageable);
 	}
 }

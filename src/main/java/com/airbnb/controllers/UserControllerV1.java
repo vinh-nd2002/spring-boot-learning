@@ -2,6 +2,7 @@ package com.airbnb.controllers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -86,14 +87,18 @@ public class UserControllerV1 {
 	public ResponseEntity<WithPaginationDTO<UserDTO>> getAllUsersWithSearch(
 			@RequestParam(required = false) int page,
 			@RequestParam(required = false) int limit,
-			@RequestParam(required = false) String name) {
+			@RequestParam(required = false) String name,
+			@RequestParam(required = false) String email,
+			@RequestParam(required = false) Set<Long> ids) {
 		// Optional<String> page, Optional<String> limit
 
 		int currentPage = (page == 1 || page == 0) ? 0 : (page - 1);
 		int pageSize = (limit < 1) ? 10 : limit;
 		Pageable pageable = PageRequest.of(currentPage, pageSize);
 		// Page<User> userPage = userServiceImpl.getAllUsers(pageable);
-		Page<User> userPage = userServiceImpl.getAllUsersV2(name, pageable);
+		// Page<User> userPage = userServiceImpl.getAllUsersV2(name, pageable);
+		// Page<User> userPage = userServiceImpl.getAllUsersV2(name, email, pageable);
+		Page<User> userPage = userServiceImpl.getAllUsersV2(ids, pageable);
 
 		List<UserDTO> userDTOs = userPage.getContent().stream().map((user) -> {
 			UserDTO userDTO = UserDTO.builder().id(user.getId()).name(user.getName()).email(user.getEmail()).build();
