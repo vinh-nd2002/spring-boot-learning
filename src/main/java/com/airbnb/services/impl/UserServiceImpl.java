@@ -9,8 +9,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
+import com.airbnb.dto.req.criteria.UserCriteria;
 import com.airbnb.entities.User;
-import com.airbnb.entities.User_;
 import com.airbnb.repositories.UserRepository;
 import com.airbnb.services.IUserService;
 import com.airbnb.spec.UserSpec;
@@ -74,5 +74,23 @@ public class UserServiceImpl implements IUserService {
 	public Page<User> getAllUsersV2(Set<Long> ids, Pageable pageable) {
 		return this.userRepository.findAll(
 				Specification.where(UserSpec.byIds(ids)), pageable);
+	}
+
+	@Override
+	public Page<User> getAllUsersWithSpec(UserCriteria userCriteria, Pageable pageable) {
+		Specification<User> combineSpecs = Specification.where(null);
+		if (userCriteria.getIds() != null && !userCriteria.getIds().isEmpty()) {
+			combineSpecs = combineSpecs.and(UserSpec.byIds(userCriteria.getIds()));
+		}
+
+		if (userCriteria.getName() != null && !userCriteria.getName().isEmpty()) {
+			combineSpecs = combineSpecs.and(UserSpec.likeName(userCriteria.getName()));
+		}
+
+		if (userCriteria.getEmail() != null && !userCriteria.getEmail().isEmpty()) {
+			combineSpecs = combineSpecs.and(UserSpec.likeEmail(userCriteria.getEmail()));
+		}
+
+		return this.userRepository.findAll(combineSpecs, pageable);
 	}
 }

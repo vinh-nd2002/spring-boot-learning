@@ -7,6 +7,7 @@ import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import com.airbnb.dto.req.criteria.UserCriteria;
 import com.airbnb.entities.User;
 
 public interface IUserService {
@@ -21,6 +22,8 @@ public interface IUserService {
 	public Page<User> getAllUsersV2(String name, String email, Pageable pageable);
 
 	public Page<User> getAllUsersV2(Set<Long> ids, Pageable pageable);
+
+	public Page<User> getAllUsersWithSpec(UserCriteria userCriteria, Pageable pageable);
 
 	public Optional<User> getUserById(Integer id);
 

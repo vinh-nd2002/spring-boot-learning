@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.airbnb.dto.req.CreateUserReq;
+import com.airbnb.dto.req.criteria.UserCriteria;
 import com.airbnb.dto.res.UserDTO;
 import com.airbnb.dto.res.WithPaginationDTO;
 import com.airbnb.entities.User;
@@ -63,16 +64,16 @@ public class UserControllerV1 {
 		// return userDTO;
 		// }).toList();
 
-		return new ResponseEntity<List<UserDTO>>(userDTOs, HttpStatus.OK);
+		return ResponseEntity.ok().body(userDTOs);
 	}
 
 	@GetMapping(value = "/search")
 	public ResponseEntity<List<UserDTO>> getAllUsersWithSearch(
-			@RequestParam(required = false, defaultValue = "0") Integer page,
-			@RequestParam(required = false, defaultValue = "10") Integer limit) {
+			@RequestParam(required = false, defaultValue = "1") Integer page,
+			@RequestParam(required = false, defaultValue = "10") Integer size) {
 		int currentPage = (page == null || page == 1) ? 0 : (page - 1);
 
-		Pageable pageable = PageRequest.of(currentPage, limit);
+		Pageable pageable = PageRequest.of(currentPage, size);
 		Page<User> users = userServiceImpl.getAllUsers(pageable);
 
 		List<UserDTO> userDTOs = users.getContent().stream().map((user) -> {
@@ -80,20 +81,20 @@ public class UserControllerV1 {
 			return userDTO;
 		}).collect(Collectors.toList());
 
-		return new ResponseEntity<List<UserDTO>>(userDTOs, HttpStatus.OK);
+		return ResponseEntity.ok().body(userDTOs);
 	}
 
 	@GetMapping(value = "/search-v2")
 	public ResponseEntity<WithPaginationDTO<UserDTO>> getAllUsersWithSearch(
 			@RequestParam(required = false) int page,
-			@RequestParam(required = false) int limit,
+			@RequestParam(required = false) int size,
 			@RequestParam(required = false) String name,
 			@RequestParam(required = false) String email,
 			@RequestParam(required = false) Set<Long> ids) {
-		// Optional<String> page, Optional<String> limit
+		// Optional<String> page, Optional<String> size
 
 		int currentPage = (page == 1 || page == 0) ? 0 : (page - 1);
-		int pageSize = (limit < 1) ? 10 : limit;
+		int pageSize = (size < 1) ? 10 : size;
 		Pageable pageable = PageRequest.of(currentPage, pageSize);
 		// Page<User> userPage = userServiceImpl.getAllUsers(pageable);
 		// Page<User> userPage = userServiceImpl.getAllUsersV2(name, pageable);
@@ -107,12 +108,37 @@ public class UserControllerV1 {
 
 		WithPaginationDTO<UserDTO> response = WithPaginationDTO.<UserDTO>builder()
 				.currentPage(userPage.getNumber() + 1)
-				.limit(userPage.getSize())
+				.size(userPage.getSize())
 				.totalItems(userPage.getTotalElements())
 				.totalPages(userPage.getTotalPages())
 				.items(userDTOs)
 				.build();
-		return new ResponseEntity<WithPaginationDTO<UserDTO>>(response, HttpStatus.OK);
+		// return new ResponseEntity<WithPaginationDTO<UserDTO>>(response,
+		// HttpStatus.OK);
+		return ResponseEntity.ok().body(response);
+	}
+
+	@GetMapping(value = "/search-v3")
+	public ResponseEntity<WithPaginationDTO<UserDTO>> getAllUsersWithSearchV3(
+			Pageable pageable, UserCriteria userCriteria) {
+		Page<User> userPage = userServiceImpl.getAllUsersWithSpec(userCriteria, pageable);
+
+		List<UserDTO> userDTOs = userPage.getContent().stream().map((user) -> {
+			UserDTO userDTO = UserDTO.builder().id(user.getId()).name(user.getName()).email(user.getEmail()).build();
+			return userDTO;
+		}).collect(Collectors.toList());
+
+		WithPaginationDTO<UserDTO> response = WithPaginationDTO.<UserDTO>builder()
+				.currentPage(userPage.getNumber() + 1)
+				.size(userPage.getSize())
+				.totalItems(userPage.getTotalElements())
+				.totalPages(userPage.getTotalPages())
+				.items(userDTOs)
+				.build();
+		return ResponseEntity.ok().body(response);
+		// return ResponseEntity.status(HttpStatus.OK).body(response);
+		// return new ResponseEntity<WithPaginationDTO<UserDTO>>(response,
+		// HttpStatus.OK);
 	}
 
 	@GetMapping(value = "/{id}")
@@ -140,6 +166,6 @@ public class UserControllerV1 {
 				.password(hashedPassword).build();
 		userServiceImpl.createUser(newUser);
 
-		return new ResponseEntity<String>("Success", HttpStatus.OK);
+		return ResponseEntity.status(HttpStatus.CREATED).body("User created successfully");
 	}
 }

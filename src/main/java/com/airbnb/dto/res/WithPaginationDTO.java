@@ -20,8 +20,8 @@ public class WithPaginationDTO<T> {
     @JsonProperty("current_page")
     private int currentPage;
 
-    @JsonProperty("limit")
-    private int limit;
+    @JsonProperty("size")
+    private int size;
 
     @JsonProperty("total_items")
     private long totalItems;
