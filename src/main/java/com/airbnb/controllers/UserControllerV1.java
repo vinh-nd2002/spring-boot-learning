@@ -18,12 +18,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import com.airbnb.dto.req.CreateUserReq;
 import com.airbnb.dto.req.criteria.UserCriteria;
+import com.airbnb.dto.res.ResponseDTO;
 import com.airbnb.dto.res.UserDTO;
-import com.airbnb.dto.res.WithPaginationDTO;
+import com.airbnb.dto.res.WithPaginationResponseDTO;
 import com.airbnb.entities.User;
+import com.airbnb.exception.EntityNotFoundException;
+import com.airbnb.exception.TestException;
 import com.airbnb.services.impl.UserServiceImpl;
 
 @RestController
@@ -85,7 +89,7 @@ public class UserControllerV1 {
 	}
 
 	@GetMapping(value = "/search-v2")
-	public ResponseEntity<WithPaginationDTO<UserDTO>> getAllUsersWithSearch(
+	public ResponseEntity<WithPaginationResponseDTO<UserDTO>> getAllUsersWithSearch(
 			@RequestParam(required = false) int page,
 			@RequestParam(required = false) int size,
 			@RequestParam(required = false) String name,
@@ -106,7 +110,7 @@ public class UserControllerV1 {
 			return userDTO;
 		}).collect(Collectors.toList());
 
-		WithPaginationDTO<UserDTO> response = WithPaginationDTO.<UserDTO>builder()
+		WithPaginationResponseDTO<UserDTO> response = WithPaginationResponseDTO.<UserDTO>builder()
 				.currentPage(userPage.getNumber() + 1)
 				.size(userPage.getSize())
 				.totalItems(userPage.getTotalElements())
@@ -119,7 +123,7 @@ public class UserControllerV1 {
 	}
 
 	@GetMapping(value = "/search-v3")
-	public ResponseEntity<WithPaginationDTO<UserDTO>> getAllUsersWithSearchV3(
+	public ResponseEntity<ResponseDTO> getAllUsersWithSearchV3(
 			Pageable pageable, UserCriteria userCriteria) {
 		Page<User> userPage = userServiceImpl.getAllUsersWithSpec(userCriteria, pageable);
 
@@ -128,29 +132,39 @@ public class UserControllerV1 {
 			return userDTO;
 		}).collect(Collectors.toList());
 
-		WithPaginationDTO<UserDTO> response = WithPaginationDTO.<UserDTO>builder()
+		WithPaginationResponseDTO<UserDTO> withPaginationResponseDTO = WithPaginationResponseDTO.<UserDTO>builder()
 				.currentPage(userPage.getNumber() + 1)
 				.size(userPage.getSize())
 				.totalItems(userPage.getTotalElements())
 				.totalPages(userPage.getTotalPages())
 				.items(userDTOs)
 				.build();
+
+		ResponseDTO response = ResponseDTO.builder().message("Get data success").data(withPaginationResponseDTO)
+				.build();
 		return ResponseEntity.ok().body(response);
-		// return ResponseEntity.status(HttpStatus.OK).body(response);
-		// return new ResponseEntity<WithPaginationDTO<UserDTO>>(response,
-		// HttpStatus.OK);
 	}
 
 	@GetMapping(value = "/{id}")
-	public ResponseEntity<UserDTO> getUserById(@PathVariable(required = true) Integer id) throws Exception {
+	public ResponseEntity<ResponseDTO> getUserById(@PathVariable(required = true) Integer id) throws Exception {
 
-		User userOpt = userServiceImpl.getUserById(id).orElseThrow(() -> new Exception("User not found"));
+		User userOpt = userServiceImpl.getUserById(id)
+				.orElseThrow(() -> new EntityNotFoundException("Entity not found"));
 		System.out.println(userOpt.getPosts());
 
 		UserDTO userInfo = UserDTO.builder().id(userOpt.getId()).name(userOpt.getName()).email(userOpt.getEmail())
 				.build();
 
-		return new ResponseEntity<UserDTO>(userInfo, HttpStatus.OK);
+		ResponseDTO response = ResponseDTO.builder().data(userInfo).message("Get data success").build();
+		return ResponseEntity.ok().body(response);
+
+	}
+
+	@GetMapping(value = "/test-exception")
+	public ResponseEntity<String> testException() {
+		throw new TestException("Test exception");
+
+		// return ResponseEntity.status(HttpStatus.OK).body("Test exception");
 
 	}
 

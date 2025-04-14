@@ -15,7 +15,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class WithPaginationDTO<T> {
+public class WithPaginationResponseDTO<T> {
 
     @JsonProperty("current_page")
     private int currentPage;

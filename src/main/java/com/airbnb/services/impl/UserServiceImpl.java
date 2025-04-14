@@ -7,13 +7,18 @@ import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.airbnb.dto.req.criteria.UserCriteria;
 import com.airbnb.entities.User;
+import com.airbnb.exception.TestException;
 import com.airbnb.repositories.UserRepository;
 import com.airbnb.services.IUserService;
 import com.airbnb.spec.UserSpec;
+
+import io.micrometer.core.ipc.http.HttpSender.Response;
 
 @Service
 public class UserServiceImpl implements IUserService {
@@ -34,6 +39,7 @@ public class UserServiceImpl implements IUserService {
 		return userRepository.findAll();
 	}
 
+	@Override
 	public Optional<User> getUserById(Integer id) {
 		// this.userRepository.getById(id);
 		// this.userRepository.getOne(id);
@@ -41,6 +47,7 @@ public class UserServiceImpl implements IUserService {
 		return this.userRepository.findById(id);
 	}
 
+	@Override
 	public List<User> getAllUsersV2() {
 		return userRepository.findAllWithPosts();
 	}
