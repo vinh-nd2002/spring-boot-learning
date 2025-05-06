@@ -18,9 +18,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.servlet.NoHandlerFoundException;
 
-import com.airbnb.dto.req.CreateUserReq;
+import com.airbnb.dto.req.CreateUserDTO;
 import com.airbnb.dto.req.criteria.UserCriteria;
 import com.airbnb.dto.res.ResponseDTO;
 import com.airbnb.dto.res.UserDTO;
@@ -169,14 +168,14 @@ public class UserControllerV1 {
 	}
 
 	@PostMapping(value = "")
-	public ResponseEntity<String> createNewUser(@RequestBody CreateUserReq createUserReq) {
+	public ResponseEntity<String> createNewUser(@RequestBody CreateUserDTO createUserDto) {
 		System.out.println("Controller: createNewUser() method called");
 		// TODO: Validate req
 
 		// User user = new User();
-		// BeanUtils.copyProperties(createUserReq, user);
-		String hashedPassword = passwordEncoder.encode(createUserReq.getPassword());
-		User newUser = User.builder().email(createUserReq.getEmail()).name(createUserReq.getName())
+		// BeanUtils.copyProperties(createUserDto, user);
+		String hashedPassword = passwordEncoder.encode(createUserDto.getPassword());
+		User newUser = User.builder().email(createUserDto.getEmail()).name(createUserDto.getName())
 				.password(hashedPassword).build();
 		userServiceImpl.createUser(newUser);
 

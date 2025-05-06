@@ -1,24 +1,24 @@
 package com.airbnb.configs;
 
-import java.util.List;
+import static com.airbnb.utils.SecurityUtils.AUTHORITIES_KEY;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-// import org.springframework.security.authentication.AuthenticationManager;
-// import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-// import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-// import org.springframework.security.config.http.SessionCreationPolicy;
-// import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationEntryPoint;
+import org.springframework.security.oauth2.server.resource.web.access.BearerTokenAccessDeniedHandler;
 import org.springframework.security.web.SecurityFilterChain;
 
-import com.airbnb.services.CustomUserDetailsService;
-import com.airbnb.services.IUserService;
+import com.airbnb.configs.security.CustomAuthenticationEntryPoint;
 
 // @EnableWebSecurity
 @Configuration
@@ -30,10 +30,12 @@ public class SecurityConfiguration {
         return new BCryptPasswordEncoder();
     }
 
-    @Bean
-    public UserDetailsService userDetailsService(IUserService userService) {
-        return new CustomUserDetailsService(userService);
-    }
+    // https://stackoverflow.com/a/53758500
+    // Sử dụng @Component("userDetailsService") để lấy bean
+    // @Bean
+    // public UserDetailsService userDetailsService(IUserService userService) {
+    // return new CustomUserDetailsService(userService);
+    // }
 
     @Bean
     public DaoAuthenticationProvider daoAuthenticationProvider(UserDetailsService userDetailsService,
@@ -55,8 +57,23 @@ public class SecurityConfiguration {
     // return new CustomAuthenticationManager(providers);
     // }
 
+    // Sau khi login thành công -> lấy token từ header -> giải mã token
+    // -> convert token sang Authentication (gồm permissions và các claims khác)
+    // -> nạp vào SecurityContext
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http)
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        grantedAuthoritiesConverter.setAuthorityPrefix("ROLE_");
+        grantedAuthoritiesConverter.setAuthoritiesClaimName(AUTHORITIES_KEY);
+
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+        return jwtAuthenticationConverter;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http,
+            CustomAuthenticationEntryPoint authenticationEntryPoint)
             throws Exception {
         http
                 .csrf((config) -> config.disable())
@@ -64,8 +81,25 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests((requests) -> requests
                         .requestMatchers("/").permitAll()
                         .requestMatchers("/users/**", "/users").permitAll()
-                        .anyRequest().authenticated());
-
+                        .requestMatchers("/api/auth/login", "/api/auth/refresh").permitAll()
+                        .anyRequest().authenticated())
+                // .anyRequest().permitAll())
+                // sau khi thêm config ở dưới, spring sẽ tự động thêm 1 filter
+                // BearerTokenAuthenticationFilter
+                // vào trước filter UsernamePasswordAuthenticationFilter
+                // để xử lý token. Tự động lấy token từ header -> Cần cấu hình decoder
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults())
+                        .authenticationEntryPoint(authenticationEntryPoint)) // setup khi lỗi jwt
+                .exceptionHandling(exceptions -> exceptions
+                        // .authenticationEntryPoint(new BearerTokenAuthenticationEntryPoint()) // 401
+                        // nếu như để mặc định body sẽ không có gì cả. chỉ có status là thay đổi nên
+                        // phải custom
+                        .authenticationEntryPoint(authenticationEntryPoint) // 401
+                        .accessDeniedHandler(new BearerTokenAccessDeniedHandler())) // 403
+                .formLogin(form -> form.disable())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // setup để có thể dùng JWT
         return http.build();
     }
 
